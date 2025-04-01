@@ -1,7 +1,9 @@
 import { 
   users, type User, type InsertUser,
   properties, type Property, type InsertProperty,
-  userProperties, type UserProperty, type InsertUserProperty
+  userProperties, type UserProperty, type InsertUserProperty,
+  walletTransactions, type WalletTransaction, type InsertWalletTransaction,
+  type UpdateUserProfile
 } from "@shared/schema";
 import session from "express-session";
 import createMemoryStore from "memorystore";
@@ -16,6 +18,7 @@ export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  updateUserProfile(userId: number, profileData: UpdateUserProfile): Promise<User>;
   
   // Property operations
   getProperties(filter: string): Promise<Property[]>;
@@ -27,8 +30,14 @@ export interface IStorage {
   getUserProperties(userId: number): Promise<(UserProperty & { property: Property })[]>;
   addUserProperty(userProperty: InsertUserProperty): Promise<UserProperty>;
   
+  // Wallet operations
+  getUserWalletBalance(userId: number): Promise<number>;
+  updateWalletBalance(userId: number, amount: number): Promise<User>;
+  addWalletTransaction(transaction: InsertWalletTransaction): Promise<WalletTransaction>;
+  getWalletTransactions(userId: number): Promise<WalletTransaction[]>;
+  
   // Session store
-  sessionStore: session.SessionStore;
+  sessionStore: session.Store;
 }
 
 export class MemStorage implements IStorage {
@@ -36,25 +45,29 @@ export class MemStorage implements IStorage {
   private users: Map<number, User>;
   private properties: Map<number, Property>;
   private userProperties: Map<number, UserProperty>;
+  private walletTransactions: Map<number, WalletTransaction>;
   
   // IDs
   private userCurrentId: number;
   private propertyCurrentId: number;
   private userPropertyCurrentId: number;
+  private walletTransactionCurrentId: number;
   
   // Session store
-  sessionStore: session.SessionStore;
+  sessionStore: session.Store;
 
   constructor() {
     // Initialize maps
     this.users = new Map();
     this.properties = new Map();
     this.userProperties = new Map();
+    this.walletTransactions = new Map();
     
     // Initialize IDs
     this.userCurrentId = 1;
     this.propertyCurrentId = 1;
     this.userPropertyCurrentId = 1;
+    this.walletTransactionCurrentId = 1;
     
     // Initialize session store
     this.sessionStore = new MemoryStore({
@@ -75,9 +88,28 @@ export class MemStorage implements IStorage {
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.userCurrentId++;
-    const user: User = { ...insertUser, id };
+    const user: User = { 
+      ...insertUser, 
+      id,
+      walletBalance: 0,
+      fullName: null,
+      email: null,
+      phoneNumber: null,
+      avatarUrl: null
+    };
     this.users.set(id, user);
     return user;
+  }
+  
+  async updateUserProfile(userId: number, profileData: UpdateUserProfile): Promise<User> {
+    const user = await this.getUser(userId);
+    if (!user) {
+      throw new Error(`User with ID ${userId} not found`);
+    }
+    
+    const updatedUser = { ...user, ...profileData };
+    this.users.set(userId, updatedUser);
+    return updatedUser;
   }
   
   // Property operations
@@ -107,11 +139,11 @@ export class MemStorage implements IStorage {
     // Sample properties
     const sampleProperties: InsertProperty[] = [
       {
-        title: "2 Bed in Princess Tower, Dubai Marina",
-        location: "Princess Tower",
-        city: "Dubai",
+        title: "2 Bed in Golden Estate, Masaki",
+        location: "Golden Estate",
+        city: "Dar es Salaam",
         bedrooms: 2,
-        price: "AED 1,823,000",
+        price: "TZS 450,000,000",
         imageUrl: "https://images.unsplash.com/photo-1582407947304-fd6169a9d7e0?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&h=400&q=80",
         type: "Balanced",
         fundingPercentage: 80,
@@ -123,11 +155,11 @@ export class MemStorage implements IStorage {
         filter: "Available"
       },
       {
-        title: "1 Bed in Sky Gardens, DIFC",
-        location: "Sky Gardens",
-        city: "Dubai",
+        title: "1 Bed in Peninsula Apartments, Msasani",
+        location: "Peninsula",
+        city: "Dar es Salaam",
         bedrooms: 1,
-        price: "AED 1,867,000",
+        price: "TZS 380,000,000",
         imageUrl: "https://images.unsplash.com/photo-1560448204-603b3fc33ddc?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&h=400&q=80",
         type: "Balanced",
         fundingPercentage: 79,
@@ -139,11 +171,11 @@ export class MemStorage implements IStorage {
         filter: "Available"
       },
       {
-        title: "Studio in Hartland Greens, MBR City",
-        location: "Hartland Greens",
-        city: "Dubai",
+        title: "Studio in Urban Residence, Upanga",
+        location: "Urban Residence",
+        city: "Dar es Salaam",
         bedrooms: 0,
-        price: "AED 1,010,000",
+        price: "TZS 250,000,000",
         imageUrl: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&h=400&q=80",
         type: "Capital Growth",
         fundingPercentage: 46,
@@ -155,11 +187,11 @@ export class MemStorage implements IStorage {
         filter: "Available"
       },
       {
-        title: "3 Bed Townhouse, The Villa",
-        location: "The Villa",
-        city: "Dubai",
+        title: "3 Bed Villa, Mikocheni",
+        location: "Mikocheni",
+        city: "Dar es Salaam",
         bedrooms: 3,
-        price: "AED 2,650,000",
+        price: "TZS 650,000,000",
         imageUrl: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&h=400&q=80",
         type: "Capital Growth",
         fundingPercentage: 100,
@@ -171,11 +203,11 @@ export class MemStorage implements IStorage {
         filter: "Funded"
       },
       {
-        title: "2 Bed in JBR, Dubai Marina",
-        location: "JBR",
-        city: "Dubai",
+        title: "2 Bed in Regent Estate, Kinondoni",
+        location: "Regent Estate",
+        city: "Dar es Salaam",
         bedrooms: 2,
-        price: "AED 2,100,000",
+        price: "TZS 520,000,000",
         imageUrl: "https://images.unsplash.com/photo-1493809842364-78817add7ffb?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&h=400&q=80",
         type: "Balanced",
         fundingPercentage: 100,
@@ -187,11 +219,11 @@ export class MemStorage implements IStorage {
         filter: "Funded"
       },
       {
-        title: "1 Bed in Downtown, Burj Khalifa",
-        location: "Downtown",
-        city: "Dubai",
+        title: "1 Bed in City Centre, Kivukoni",
+        location: "City Centre",
+        city: "Dar es Salaam",
         bedrooms: 1,
-        price: "AED 1,950,000",
+        price: "TZS 320,000,000",
         imageUrl: "https://images.unsplash.com/photo-1577495508326-19a1b3cf65b9?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&h=400&q=80",
         type: "Balanced",
         fundingPercentage: 0,
@@ -227,9 +259,57 @@ export class MemStorage implements IStorage {
   
   async addUserProperty(insertUserProperty: InsertUserProperty): Promise<UserProperty> {
     const id = this.userPropertyCurrentId++;
-    const userProperty: UserProperty = { ...insertUserProperty, id };
+    const userProperty: UserProperty = { 
+      ...insertUserProperty, 
+      id,
+      status: insertUserProperty.status || "active" 
+    };
     this.userProperties.set(id, userProperty);
     return userProperty;
+  }
+  
+  // Wallet operations
+  async getUserWalletBalance(userId: number): Promise<number> {
+    const user = await this.getUser(userId);
+    if (!user) {
+      throw new Error(`User with ID ${userId} not found`);
+    }
+    return user.walletBalance;
+  }
+  
+  async updateWalletBalance(userId: number, amount: number): Promise<User> {
+    const user = await this.getUser(userId);
+    if (!user) {
+      throw new Error(`User with ID ${userId} not found`);
+    }
+    
+    const updatedUser = { 
+      ...user, 
+      walletBalance: user.walletBalance + amount 
+    };
+    
+    this.users.set(userId, updatedUser);
+    return updatedUser;
+  }
+  
+  async addWalletTransaction(transaction: InsertWalletTransaction): Promise<WalletTransaction> {
+    const id = this.walletTransactionCurrentId++;
+    const now = new Date();
+    const walletTransaction: WalletTransaction = {
+      ...transaction,
+      id,
+      date: now,
+      relatedPropertyId: transaction.relatedPropertyId === undefined ? null : transaction.relatedPropertyId
+    };
+    
+    this.walletTransactions.set(id, walletTransaction);
+    return walletTransaction;
+  }
+  
+  async getWalletTransactions(userId: number): Promise<WalletTransaction[]> {
+    return Array.from(this.walletTransactions.values())
+      .filter(transaction => transaction.userId === userId)
+      .sort((a, b) => b.date.getTime() - a.date.getTime()); // Sort by date descending
   }
 }
 

@@ -84,9 +84,9 @@ export default function AuthPage() {
             <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center mb-4">
               <Building2 className="h-6 w-6 text-white" />
             </div>
-            <CardTitle className="text-2xl font-bold text-center">stake</CardTitle>
+            <CardTitle className="text-2xl font-bold text-center">Wazawa St.</CardTitle>
             <CardDescription className="text-center">
-              The smarter way to invest in real estate
+              The smarter way to invest in Tanzanian real estate
             </CardDescription>
           </CardHeader>
           <Tabs defaultValue="login">
@@ -194,9 +194,9 @@ export default function AuthPage() {
       
       <div className="hidden sm:block max-w-md w-full mx-auto mt-8 sm:mt-0 sm:ml-8">
         <div className="bg-white p-8 rounded-lg shadow-sm">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Invest in Premium Real Estate</h2>
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Invest in Tanzanian Real Estate</h2>
           <p className="text-gray-600 mb-6">
-            Join thousands of investors already building their real estate portfolio with Stake.
+            Join hundreds of investors already building their real estate portfolio with Wazawa St.
           </p>
           <div className="space-y-4">
             <div className="flex items-start">
@@ -204,8 +204,8 @@ export default function AuthPage() {
                 ✓
               </div>
               <div>
-                <h3 className="font-medium text-gray-800">Curated Properties</h3>
-                <p className="text-sm text-gray-600">Access professionally vetted investment opportunities in prime locations</p>
+                <h3 className="font-medium text-gray-800">Prime Properties</h3>
+                <p className="text-sm text-gray-600">Access expertly vetted investment opportunities in Dar es Salaam's top neighborhoods</p>
               </div>
             </div>
             <div className="flex items-start">
@@ -214,7 +214,7 @@ export default function AuthPage() {
               </div>
               <div>
                 <h3 className="font-medium text-gray-800">Low Minimum Investment</h3>
-                <p className="text-sm text-gray-600">Start with as little as $500 and build a diversified portfolio</p>
+                <p className="text-sm text-gray-600">Start with as little as TZS 100,000 and build a diversified portfolio</p>
               </div>
             </div>
             <div className="flex items-start">
@@ -223,7 +223,7 @@ export default function AuthPage() {
               </div>
               <div>
                 <h3 className="font-medium text-gray-800">Transparent Returns</h3>
-                <p className="text-sm text-gray-600">Clear visibility of all costs, risks, and potential returns</p>
+                <p className="text-sm text-gray-600">Clear visibility of all costs, risks, and potential returns in TZS</p>
               </div>
             </div>
           </div>
