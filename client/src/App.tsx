@@ -6,6 +6,9 @@ import NotFound from "@/pages/not-found";
 import HomePage from "@/pages/home-page";
 import PropertyDetails from "@/pages/property-details";
 import AuthPage from "@/pages/auth-page";
+import WalletPage from "@/pages/wallet-page";
+import PortfolioPage from "@/pages/portfolio-page";
+import ProfilePage from "@/pages/profile-page";
 import { ProtectedRoute } from "./lib/protected-route";
 import { AuthProvider } from "./hooks/use-auth";
 import { ThemeProvider } from "@/components/ui/theme-provider";
@@ -15,6 +18,9 @@ function Router() {
     <Switch>
       <ProtectedRoute path="/" component={HomePage} />
       <ProtectedRoute path="/property/:id" component={PropertyDetails} />
+      <ProtectedRoute path="/wallet" component={WalletPage} />
+      <ProtectedRoute path="/portfolio" component={PortfolioPage} />
+      <ProtectedRoute path="/profile" component={ProfilePage} />
       <Route path="/auth" component={AuthPage} />
       <Route component={NotFound} />
     </Switch>

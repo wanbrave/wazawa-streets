@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Home, Briefcase, Award, ShoppingCart, User } from "lucide-react";
+import { Home, Briefcase, Award, Wallet, User, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/use-auth";
@@ -20,8 +20,8 @@ export function Sidebar({ isMobile, onClose }: SidebarProps) {
   const navItems = [
     { href: "/", label: "Properties", icon: <Home className="h-5 w-5 mr-3" /> },
     { href: "/portfolio", label: "Portfolio", icon: <Briefcase className="h-5 w-5 mr-3" /> },
-    { href: "/rewards", label: "Rewards", icon: <Award className="h-5 w-5 mr-3" /> },
-    { href: "/cart", label: "Cart", icon: <ShoppingCart className="h-5 w-5 mr-3" /> },
+    { href: "/wallet", label: "Wallet", icon: <Wallet className="h-5 w-5 mr-3" /> },
+    { href: "/profile", label: "Profile", icon: <User className="h-5 w-5 mr-3" /> },
   ];
 
   const mobileClasses = isMobile
@@ -31,7 +31,10 @@ export function Sidebar({ isMobile, onClose }: SidebarProps) {
   return (
     <div className={mobileClasses}>
       <div className="p-4 border-b flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-800">stake</h1>
+        <div className="flex items-center">
+          <Building2 className="h-6 w-6 mr-2 text-primary" />
+          <h1 className="text-2xl font-bold text-gray-800">Wazawa St.</h1>
+        </div>
         {isMobile && (
           <Button variant="ghost" size="icon" onClick={onClose}>
             <svg
