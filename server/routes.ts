@@ -225,7 +225,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Different handling based on withdrawal method
       if (method === "bank" && bankName && accountNumber) {
-        description = `Withdrawal to ${bankName} account ${accountNumber.slice(-4).padStart(accountNumber.length, '*')} (${accountName})`;
+        const maskedAccount = accountNumber.slice(-4).padStart(accountNumber.length, '*');
+        description = `Withdrawal to ${bankName} account ${maskedAccount} (${accountName})`;
       }
       
       // Update wallet balance (negative amount for withdrawal)

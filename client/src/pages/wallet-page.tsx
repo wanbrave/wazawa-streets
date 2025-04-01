@@ -124,25 +124,25 @@ export default function WalletPage() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <Button 
                       onClick={() => setIsDepositDialogOpen(true)}
-                      className="flex justify-between items-center bg-green-600 hover:bg-green-700 text-white p-6 h-auto"
+                      className="flex justify-between items-center bg-green-600 hover:bg-green-700 text-white p-4 sm:p-6 h-auto"
                     >
-                      <div className="flex items-center">
-                        <BadgePlus className="h-6 w-6 mr-3" />
-                        <span className="text-lg font-medium">Deposit Funds</span>
+                      <div className="flex items-center min-w-0">
+                        <BadgePlus className="h-5 w-5 sm:h-6 sm:w-6 flex-shrink-0 mr-2 sm:mr-3" />
+                        <span className="text-base sm:text-lg font-medium truncate">Deposit</span>
                       </div>
-                      <ArrowRight className="h-5 w-5" />
+                      <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0 ml-2" />
                     </Button>
                     
                     <Button 
                       onClick={() => setIsWithdrawDialogOpen(true)}
                       variant="outline"
-                      className="flex justify-between items-center border-red-200 hover:bg-red-50 text-red-600 hover:text-red-700 p-6 h-auto"
+                      className="flex justify-between items-center border-red-200 hover:bg-red-50 text-red-600 hover:text-red-700 p-4 sm:p-6 h-auto"
                     >
-                      <div className="flex items-center">
-                        <BadgeMinus className="h-6 w-6 mr-3" />
-                        <span className="text-lg font-medium">Withdraw Funds</span>
+                      <div className="flex items-center min-w-0">
+                        <BadgeMinus className="h-5 w-5 sm:h-6 sm:w-6 flex-shrink-0 mr-2 sm:mr-3" />
+                        <span className="text-base sm:text-lg font-medium truncate">Withdraw</span>
                       </div>
-                      <ArrowRight className="h-5 w-5" />
+                      <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0 ml-2" />
                     </Button>
                   </div>
                 </CardContent>
@@ -171,9 +171,12 @@ export default function WalletPage() {
             <div>
               <h2 className="text-xl font-bold mb-4">Transactions</h2>
               <Card>
-                <CardContent className="p-0">
-                  <div className="grid grid-cols-4 gap-4 p-4 border-b text-sm font-medium text-muted-foreground">
+                <CardContent className="p-0 overflow-x-auto">
+                  <div className="grid grid-cols-7 gap-2 p-4 border-b text-sm font-medium text-muted-foreground min-w-[800px]">
                     <div>Type</div>
+                    <div>Method</div>
+                    <div>Organization</div>
+                    <div>Account</div>
                     <div>Status</div>
                     <div>Date</div>
                     <div className="text-right">Amount</div>
@@ -181,25 +184,68 @@ export default function WalletPage() {
                   {isLoadingTransactions ? (
                     <div className="text-center py-8">Loading transactions...</div>
                   ) : transactions?.length > 0 ? (
-                    <div>
-                      {transactions.map((transaction: WalletTransaction) => (
-                        <div key={transaction.id} className="grid grid-cols-4 gap-4 p-4 border-b text-sm">
-                          <div className="flex items-center gap-2">
-                            {getTransactionIcon(transaction.type)}
-                            <span className="capitalize">{transaction.type}</span>
+                    <div className="min-w-[800px]">
+                      {transactions.map((transaction: WalletTransaction) => {
+                        // Extract method, organization and account from description
+                        let method = "Standard";
+                        let organization = "-";
+                        let account = "-";
+                        
+                        if (transaction.description.includes("via card")) {
+                          method = "Card";
+                          const match = transaction.description.match(/via card ending in (\d+)/);
+                          account = match ? `**** ${match[1]}` : "-";
+                        } 
+                        else if (transaction.description.includes("via")) {
+                          method = "Mobile Money";
+                          const matchProvider = transaction.description.match(/via ([^(]+)/);
+                          if (matchProvider) {
+                            organization = matchProvider[1].trim();
+                          }
+                          
+                          const matchPhone = transaction.description.match(/\(([^)]+)\)/);
+                          if (matchPhone) {
+                            account = matchPhone[1];
+                          }
+                        }
+                        else if (transaction.description.includes("Withdrawal to")) {
+                          method = "Bank";
+                          
+                          // Extract bank name and account details
+                          // Expected format: "Withdrawal to CRDB account *****5432 (John Doe)"
+                          const bankMatch = transaction.description.match(/Withdrawal to ([^ ]+)/);
+                          if (bankMatch) {
+                            organization = bankMatch[1].trim();
+                          }
+                          
+                          const accountMatch = transaction.description.match(/account ([^ ]+)/);
+                          if (accountMatch) {
+                            account = accountMatch[1].trim();
+                          }
+                        }
+                        
+                        return (
+                          <div key={transaction.id} className="grid grid-cols-7 gap-2 p-4 border-b text-sm">
+                            <div className="flex items-center gap-2">
+                              {getTransactionIcon(transaction.type)}
+                              <span className="capitalize">{transaction.type}</span>
+                            </div>
+                            <div>{method}</div>
+                            <div>{organization}</div>
+                            <div className="truncate">{account}</div>
+                            <div>Completed</div>
+                            <div>
+                              {transaction.date
+                                ? formatDistanceToNow(new Date(transaction.date), { addSuffix: true })
+                                : "Unknown date"}
+                            </div>
+                            <div className={`text-right font-medium ${transaction.amount > 0 ? "text-green-600" : "text-red-600"}`}>
+                              {transaction.amount > 0 ? "+" : ""}
+                              {transaction.amount.toLocaleString()} TZS
+                            </div>
                           </div>
-                          <div>Completed</div>
-                          <div>
-                            {transaction.date
-                              ? formatDistanceToNow(new Date(transaction.date), { addSuffix: true })
-                              : "Unknown date"}
-                          </div>
-                          <div className={`text-right font-medium ${transaction.amount > 0 ? "text-green-600" : "text-red-600"}`}>
-                            {transaction.amount > 0 ? "+" : ""}
-                            {transaction.amount.toLocaleString()} TZS
-                          </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   ) : (
                     <div className="flex flex-col items-center justify-center py-16 text-center">
