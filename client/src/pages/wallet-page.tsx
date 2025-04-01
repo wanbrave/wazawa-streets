@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
-import { BadgePlus, BadgeMinus, Clock, CreditCard } from "lucide-react";
+import { BadgePlus, BadgeMinus, Clock, CreditCard, Building, Star } from "lucide-react";
 import { Sidebar } from "@/components/sidebar";
 import { MobileHeader } from "@/components/mobile-header";
 
@@ -180,6 +180,7 @@ export default function WalletPage() {
                     <TabsContent value="deposit">
                       <div className="flex flex-col md:flex-row gap-4">
                         <Input
+                          id="depositInput"
                           type="number"
                           placeholder="Amount in TZS"
                           value={depositAmount}
@@ -198,6 +199,7 @@ export default function WalletPage() {
                     <TabsContent value="withdraw">
                       <div className="flex flex-col md:flex-row gap-4">
                         <Input
+                          id="withdrawInput"
                           type="number"
                           placeholder="Amount in TZS"
                           value={withdrawAmount}
@@ -218,44 +220,151 @@ export default function WalletPage() {
               </Card>
             </div>
 
+            {/* Balances Section */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Cash Balance Card */}
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-1">Cash balance</p>
+                      <h3 className="text-3xl font-bold">TZS {isLoadingWallet
+                        ? "0"
+                        : walletData?.balance.toLocaleString() || "0"}</h3>
+                    </div>
+                    <div className="flex flex-col space-y-2">
+                      <Button 
+                        className="w-full bg-gray-900 text-white"
+                        onClick={() => {
+                          document.getElementById('depositInput')?.focus();
+                          const tabTrigger = document.querySelector('[data-state="inactive"][value="deposit"]');
+                          if (tabTrigger) (tabTrigger as HTMLElement).click();
+                        }}
+                      >
+                        Deposit
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        className="w-full"
+                        onClick={() => {
+                          document.getElementById('withdrawInput')?.focus();
+                          const tabTrigger = document.querySelector('[data-state="inactive"][value="withdraw"]');
+                          if (tabTrigger) (tabTrigger as HTMLElement).click();
+                        }}
+                      >
+                        Withdraw
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Rewards Balance Card */}
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <div className="flex items-center gap-1 mb-1">
+                        <p className="text-sm text-muted-foreground">Rewards balance</p>
+                        <Star className="h-4 w-4 text-muted-foreground" />
+                      </div>
+                      <h3 className="text-3xl font-bold">TZS 0</h3>
+                    </div>
+                    <div>
+                      <Star className="h-10 w-10 text-green-300" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
             {/* Transactions List */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Transaction History</CardTitle>
-                <CardDescription>Recent activity in your wallet</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {isLoadingTransactions ? (
-                  <div className="text-center py-4">Loading transactions...</div>
-                ) : transactions?.length > 0 ? (
-                  <div className="space-y-4">
-                    {transactions.map((transaction: WalletTransaction) => (
-                      <div key={transaction.id} className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          {getTransactionIcon(transaction.type)}
+            <div>
+              <h2 className="text-xl font-bold mb-4">Transactions</h2>
+              <Card>
+                <CardContent className="p-0">
+                  <div className="grid grid-cols-4 gap-4 p-4 border-b text-sm font-medium text-muted-foreground">
+                    <div>Type</div>
+                    <div>Status</div>
+                    <div>Date</div>
+                    <div className="text-right">Amount</div>
+                  </div>
+                  {isLoadingTransactions ? (
+                    <div className="text-center py-8">Loading transactions...</div>
+                  ) : transactions?.length > 0 ? (
+                    <div>
+                      {transactions.map((transaction: WalletTransaction) => (
+                        <div key={transaction.id} className="grid grid-cols-4 gap-4 p-4 border-b text-sm">
+                          <div className="flex items-center gap-2">
+                            {getTransactionIcon(transaction.type)}
+                            <span className="capitalize">{transaction.type}</span>
+                          </div>
+                          <div>Completed</div>
                           <div>
-                            <p className="font-medium">{transaction.description}</p>
-                            <p className="text-sm text-muted-foreground">
-                              {transaction.date
-                                ? formatDistanceToNow(new Date(transaction.date), { addSuffix: true })
-                                : "Unknown date"}
-                            </p>
+                            {transaction.date
+                              ? formatDistanceToNow(new Date(transaction.date), { addSuffix: true })
+                              : "Unknown date"}
+                          </div>
+                          <div className={`text-right font-medium ${transaction.amount > 0 ? "text-green-600" : "text-red-600"}`}>
+                            {transaction.amount > 0 ? "+" : ""}
+                            {transaction.amount.toLocaleString()} TZS
                           </div>
                         </div>
-                        <div className={`font-medium ${transaction.amount > 0 ? "text-green-600" : "text-red-600"}`}>
-                          {transaction.amount > 0 ? "+" : ""}
-                          {transaction.amount.toLocaleString()} TZS
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-4 text-muted-foreground">
-                    No transactions yet. Deposit funds to get started.
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-16 text-center">
+                      <Clock className="h-12 w-12 text-muted-foreground mb-4" />
+                      <h3 className="text-lg font-medium mb-1">No transactions yet</h3>
+                      <p className="text-muted-foreground">
+                        Deposit funds to get started with your investments
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Cards and Banks Section */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Cards Section */}
+              <div>
+                <h2 className="text-xl font-bold mb-4">Cards</h2>
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="flex items-center gap-3 mb-4">
+                      <CreditCard className="h-5 w-5 text-muted-foreground" />
+                      <p className="text-sm text-muted-foreground">
+                        Add a card to enjoy instant deposits from anywhere in the world
+                      </p>
+                    </div>
+                    <Button variant="outline" className="w-full flex items-center justify-center gap-2">
+                      <span>Add new card</span>
+                      <BadgePlus className="h-4 w-4" />
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Banks Section */}
+              <div>
+                <h2 className="text-xl font-bold mb-4">Banks</h2>
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="flex items-center gap-3 mb-4">
+                      <Building className="h-5 w-5 text-muted-foreground" />
+                      <p className="text-sm text-muted-foreground">
+                        Add a bank account to deposit from anywhere in the world
+                      </p>
+                    </div>
+                    <Button variant="outline" className="w-full flex items-center justify-center gap-2">
+                      <span>Add new bank</span>
+                      <BadgePlus className="h-4 w-4" />
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
           </div>
         </main>
       </div>
