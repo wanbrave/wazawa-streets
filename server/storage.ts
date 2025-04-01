@@ -3,6 +3,7 @@ import {
   properties, type Property, type InsertProperty,
   userProperties, type UserProperty, type InsertUserProperty,
   walletTransactions, type WalletTransaction, type InsertWalletTransaction,
+  paymentCards, type PaymentCard, type InsertPaymentCard,
   type UpdateUserProfile
 } from "@shared/schema";
 import session from "express-session";
@@ -36,6 +37,12 @@ export interface IStorage {
   addWalletTransaction(transaction: InsertWalletTransaction): Promise<WalletTransaction>;
   getWalletTransactions(userId: number): Promise<WalletTransaction[]>;
   
+  // Payment Card operations
+  addPaymentCard(card: InsertPaymentCard): Promise<PaymentCard>;
+  getUserPaymentCards(userId: number): Promise<PaymentCard[]>;
+  deletePaymentCard(cardId: number): Promise<void>;
+  setDefaultPaymentCard(cardId: number, userId: number): Promise<PaymentCard>;
+  
   // Session store
   sessionStore: session.Store;
 }
@@ -46,12 +53,14 @@ export class MemStorage implements IStorage {
   private properties: Map<number, Property>;
   private userProperties: Map<number, UserProperty>;
   private walletTransactions: Map<number, WalletTransaction>;
+  private paymentCards: Map<number, PaymentCard>;
   
   // IDs
   private userCurrentId: number;
   private propertyCurrentId: number;
   private userPropertyCurrentId: number;
   private walletTransactionCurrentId: number;
+  private paymentCardCurrentId: number;
   
   // Session store
   sessionStore: session.Store;
@@ -62,12 +71,14 @@ export class MemStorage implements IStorage {
     this.properties = new Map();
     this.userProperties = new Map();
     this.walletTransactions = new Map();
+    this.paymentCards = new Map();
     
     // Initialize IDs
     this.userCurrentId = 1;
     this.propertyCurrentId = 1;
     this.userPropertyCurrentId = 1;
     this.walletTransactionCurrentId = 1;
+    this.paymentCardCurrentId = 1;
     
     // Initialize session store
     this.sessionStore = new MemoryStore({
@@ -310,6 +321,72 @@ export class MemStorage implements IStorage {
     return Array.from(this.walletTransactions.values())
       .filter(transaction => transaction.userId === userId)
       .sort((a, b) => b.date.getTime() - a.date.getTime()); // Sort by date descending
+  }
+
+  // Payment Card operations
+  async addPaymentCard(insertCard: InsertPaymentCard): Promise<PaymentCard> {
+    const id = this.paymentCardCurrentId++;
+    
+    // Extract last 4 digits from card number
+    const lastFourDigits = insertCard.cardNumber.slice(-4);
+    
+    const paymentCard: PaymentCard = {
+      ...insertCard,
+      id,
+      lastFourDigits,
+      isDefault: false
+    };
+    
+    // If this is the first card for the user, make it the default
+    const userCards = await this.getUserPaymentCards(insertCard.userId);
+    if (userCards.length === 0) {
+      paymentCard.isDefault = true;
+    }
+    
+    this.paymentCards.set(id, paymentCard);
+    return paymentCard;
+  }
+  
+  async getUserPaymentCards(userId: number): Promise<PaymentCard[]> {
+    return Array.from(this.paymentCards.values())
+      .filter(card => card.userId === userId);
+  }
+  
+  async deletePaymentCard(cardId: number): Promise<void> {
+    const card = this.paymentCards.get(cardId);
+    if (!card) {
+      throw new Error(`Payment card with ID ${cardId} not found`);
+    }
+    
+    this.paymentCards.delete(cardId);
+    
+    // If the deleted card was the default, set another card as default
+    if (card.isDefault) {
+      const userCards = await this.getUserPaymentCards(card.userId);
+      if (userCards.length > 0) {
+        const newDefaultCard = userCards[0];
+        await this.setDefaultPaymentCard(newDefaultCard.id, card.userId);
+      }
+    }
+  }
+  
+  async setDefaultPaymentCard(cardId: number, userId: number): Promise<PaymentCard> {
+    // First, set all user's cards to non-default
+    const userCards = await this.getUserPaymentCards(userId);
+    for (const card of userCards) {
+      const updatedCard = { ...card, isDefault: false };
+      this.paymentCards.set(card.id, updatedCard);
+    }
+    
+    // Then set the specified card as default
+    const card = this.paymentCards.get(cardId);
+    if (!card) {
+      throw new Error(`Payment card with ID ${cardId} not found`);
+    }
+    
+    const updatedCard = { ...card, isDefault: true };
+    this.paymentCards.set(cardId, updatedCard);
+    return updatedCard;
   }
 }
 

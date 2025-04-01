@@ -13,6 +13,17 @@ export const users = pgTable("users", {
   walletBalance: real("wallet_balance").default(0).notNull(),
 });
 
+export const paymentCards = pgTable("payment_cards", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  cardNumber: text("card_number").notNull(),
+  cardholderName: text("cardholder_name").notNull(),
+  expiryDate: text("expiry_date").notNull(),
+  cardType: text("card_type").notNull(), // visa, mastercard, etc.
+  isDefault: boolean("is_default").default(false).notNull(),
+  lastFourDigits: text("last_four_digits").notNull(),
+});
+
 export const properties = pgTable("properties", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
@@ -76,13 +87,20 @@ export const updateUserProfileSchema = createInsertSchema(users).pick({
   avatarUrl: true,
 }).partial();
 
+export const insertPaymentCardSchema = createInsertSchema(paymentCards).omit({
+  id: true,
+  lastFourDigits: true,
+});
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type InsertProperty = z.infer<typeof insertPropertySchema>;
 export type InsertUserProperty = z.infer<typeof insertUserPropertySchema>;
 export type InsertWalletTransaction = z.infer<typeof insertWalletTransactionSchema>;
 export type UpdateUserProfile = z.infer<typeof updateUserProfileSchema>;
+export type InsertPaymentCard = z.infer<typeof insertPaymentCardSchema>;
 
 export type User = typeof users.$inferSelect;
 export type Property = typeof properties.$inferSelect;
 export type UserProperty = typeof userProperties.$inferSelect;
 export type WalletTransaction = typeof walletTransactions.$inferSelect;
+export type PaymentCard = typeof paymentCards.$inferSelect;

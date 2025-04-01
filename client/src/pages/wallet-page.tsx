@@ -1,10 +1,9 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
-import { useQuery, useMutation, QueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
@@ -12,6 +11,9 @@ import { formatDistanceToNow } from "date-fns";
 import { BadgePlus, BadgeMinus, Clock, CreditCard, Building, Star } from "lucide-react";
 import { Sidebar } from "@/components/sidebar";
 import { MobileHeader } from "@/components/mobile-header";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { AddCardForm } from "@/components/add-card-form";
+import { PaymentCardDisplay } from "@/components/payment-card-display";
 
 // Type for wallet transaction
 type WalletTransaction = {
@@ -29,7 +31,7 @@ export default function WalletPage() {
   const { toast } = useToast();
   const [depositAmount, setDepositAmount] = useState("");
   const [withdrawAmount, setWithdrawAmount] = useState("");
-  const queryClient = new QueryClient();
+  const [isAddCardDialogOpen, setIsAddCardDialogOpen] = useState(false);
 
   // Fetch wallet balance
   const { data: walletData, isLoading: isLoadingWallet } = useQuery({
@@ -220,63 +222,23 @@ export default function WalletPage() {
               </Card>
             </div>
 
-            {/* Balances Section */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Cash Balance Card */}
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <p className="text-sm text-muted-foreground mb-1">Cash balance</p>
-                      <h3 className="text-3xl font-bold">TZS {isLoadingWallet
-                        ? "0"
-                        : walletData?.balance.toLocaleString() || "0"}</h3>
+            {/* Rewards Balance Card */}
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <div className="flex items-center gap-1 mb-1">
+                      <p className="text-sm text-muted-foreground">Rewards balance</p>
+                      <Star className="h-4 w-4 text-muted-foreground" />
                     </div>
-                    <div className="flex flex-col space-y-2">
-                      <Button 
-                        className="w-full bg-gray-900 text-white"
-                        onClick={() => {
-                          document.getElementById('depositInput')?.focus();
-                          const tabTrigger = document.querySelector('[data-state="inactive"][value="deposit"]');
-                          if (tabTrigger) (tabTrigger as HTMLElement).click();
-                        }}
-                      >
-                        Deposit
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        className="w-full"
-                        onClick={() => {
-                          document.getElementById('withdrawInput')?.focus();
-                          const tabTrigger = document.querySelector('[data-state="inactive"][value="withdraw"]');
-                          if (tabTrigger) (tabTrigger as HTMLElement).click();
-                        }}
-                      >
-                        Withdraw
-                      </Button>
-                    </div>
+                    <h3 className="text-3xl font-bold">TZS 0</h3>
                   </div>
-                </CardContent>
-              </Card>
-
-              {/* Rewards Balance Card */}
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <div className="flex items-center gap-1 mb-1">
-                        <p className="text-sm text-muted-foreground">Rewards balance</p>
-                        <Star className="h-4 w-4 text-muted-foreground" />
-                      </div>
-                      <h3 className="text-3xl font-bold">TZS 0</h3>
-                    </div>
-                    <div>
-                      <Star className="h-10 w-10 text-green-300" />
-                    </div>
+                  <div>
+                    <Star className="h-10 w-10 text-green-300" />
                   </div>
-                </CardContent>
-              </Card>
-            </div>
+                </div>
+              </CardContent>
+            </Card>
 
             {/* Transactions List */}
             <div>
@@ -325,49 +287,51 @@ export default function WalletPage() {
               </Card>
             </div>
 
-            {/* Cards and Banks Section */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Cards Section */}
-              <div>
-                <h2 className="text-xl font-bold mb-4">Cards</h2>
-                <Card>
-                  <CardContent className="pt-6">
-                    <div className="flex items-center gap-3 mb-4">
-                      <CreditCard className="h-5 w-5 text-muted-foreground" />
-                      <p className="text-sm text-muted-foreground">
-                        Add a card to enjoy instant deposits from anywhere in the world
-                      </p>
-                    </div>
-                    <Button variant="outline" className="w-full flex items-center justify-center gap-2">
-                      <span>Add new card</span>
-                      <BadgePlus className="h-4 w-4" />
-                    </Button>
-                  </CardContent>
-                </Card>
+            {/* Cards Section */}
+            <div>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold">Payment Cards</h2>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setIsAddCardDialogOpen(true)}
+                  className="flex items-center gap-2"
+                >
+                  <BadgePlus className="h-4 w-4" />
+                  <span>Add Card</span>
+                </Button>
               </div>
+              
+              <PaymentCardDisplay onAddCard={() => setIsAddCardDialogOpen(true)} />
+            </div>
 
-              {/* Banks Section */}
-              <div>
-                <h2 className="text-xl font-bold mb-4">Banks</h2>
-                <Card>
-                  <CardContent className="pt-6">
-                    <div className="flex items-center gap-3 mb-4">
-                      <Building className="h-5 w-5 text-muted-foreground" />
-                      <p className="text-sm text-muted-foreground">
-                        Add a bank account to deposit from anywhere in the world
-                      </p>
-                    </div>
-                    <Button variant="outline" className="w-full flex items-center justify-center gap-2">
-                      <span>Add new bank</span>
-                      <BadgePlus className="h-4 w-4" />
-                    </Button>
-                  </CardContent>
-                </Card>
-              </div>
+            {/* Banks Section */}
+            <div>
+              <h2 className="text-xl font-bold mb-4">Banks</h2>
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <Building className="h-5 w-5 text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground">
+                      Add a bank account to deposit from anywhere in the world
+                    </p>
+                  </div>
+                  <Button variant="outline" className="w-full flex items-center justify-center gap-2">
+                    <span>Add new bank</span>
+                    <BadgePlus className="h-4 w-4" />
+                  </Button>
+                </CardContent>
+              </Card>
             </div>
           </div>
         </main>
       </div>
+      
+      {/* Add Card Dialog */}
+      <Dialog open={isAddCardDialogOpen} onOpenChange={setIsAddCardDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <AddCardForm onClose={() => setIsAddCardDialogOpen(false)} />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
