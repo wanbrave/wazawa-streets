@@ -21,6 +21,8 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Sidebar } from "@/components/sidebar";
+import { MobileHeader } from "@/components/mobile-header";
 
 // Profile update schema
 const profileSchema = z.object({
@@ -78,14 +80,19 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="container py-8">
-      <div className="flex flex-col gap-8">
-        <div>
-          <h1 className="text-3xl font-bold mb-2">My Profile</h1>
-          <p className="text-muted-foreground">
-            Manage your personal information and account settings
-          </p>
-        </div>
+    <div className="min-h-screen flex">
+      <Sidebar />
+      <MobileHeader />
+      
+      <div className="flex-1 flex flex-col md:ml-0 pt-16 md:pt-0">
+        <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-neutral-100">
+          <div className="flex flex-col gap-8">
+            <div>
+              <h1 className="text-3xl font-bold mb-2">My Profile</h1>
+              <p className="text-muted-foreground">
+                Manage your personal information and account settings
+              </p>
+            </div>
 
         <Card>
           <CardHeader>
@@ -216,6 +223,8 @@ export default function ProfilePage() {
             </div>
           </CardContent>
         </Card>
+          </div>
+        </main>
       </div>
     </div>
   );

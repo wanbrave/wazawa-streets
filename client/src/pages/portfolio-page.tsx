@@ -6,6 +6,8 @@ import { Separator } from "@/components/ui/separator";
 import { CircleDollarSign, Landmark, PercentCircle, TrendingUp } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { Property } from "@shared/schema";
+import { Sidebar } from "@/components/sidebar";
+import { MobileHeader } from "@/components/mobile-header";
 
 // Type for portfolio item
 type PortfolioItem = {
@@ -69,14 +71,19 @@ export default function PortfolioPage() {
   const stats = calculateStats();
 
   return (
-    <div className="container py-8">
-      <div className="flex flex-col gap-8">
-        <div>
-          <h1 className="text-3xl font-bold mb-2">My Portfolio</h1>
-          <p className="text-muted-foreground">
-            Track and manage your real estate investments
-          </p>
-        </div>
+    <div className="min-h-screen flex">
+      <Sidebar />
+      <MobileHeader />
+      
+      <div className="flex-1 flex flex-col md:ml-0 pt-16 md:pt-0">
+        <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-neutral-100">
+          <div className="flex flex-col gap-8">
+            <div>
+              <h1 className="text-3xl font-bold mb-2">My Portfolio</h1>
+              <p className="text-muted-foreground">
+                Track and manage your real estate investments
+              </p>
+            </div>
 
         {/* Portfolio Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -212,6 +219,8 @@ export default function PortfolioPage() {
             )}
           </CardContent>
         </Card>
+          </div>
+        </main>
       </div>
     </div>
   );

@@ -10,6 +10,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
 import { BadgePlus, BadgeMinus, Clock, CreditCard } from "lucide-react";
+import { Sidebar } from "@/components/sidebar";
+import { MobileHeader } from "@/components/mobile-header";
 
 // Type for wallet transaction
 type WalletTransaction = {
@@ -133,122 +135,129 @@ export default function WalletPage() {
   };
 
   return (
-    <div className="container py-8">
-      <div className="flex flex-col gap-8">
-        <div>
-          <h1 className="text-3xl font-bold mb-2">My Wallet</h1>
-          <p className="text-muted-foreground">
-            Manage your funds and track your transactions
-          </p>
-        </div>
+    <div className="min-h-screen flex">
+      <Sidebar />
+      <MobileHeader />
+      
+      <div className="flex-1 flex flex-col md:ml-0 pt-16 md:pt-0">
+        <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-neutral-100">
+          <div className="flex flex-col gap-8">
+            <div>
+              <h1 className="text-3xl font-bold mb-2">My Wallet</h1>
+              <p className="text-muted-foreground">
+                Manage your funds and track your transactions
+              </p>
+            </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Wallet Balance Card */}
-          <Card className="md:col-span-1">
-            <CardHeader>
-              <CardTitle>Balance</CardTitle>
-              <CardDescription>Your current wallet balance</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-primary">
-                {isLoadingWallet
-                  ? "Loading..."
-                  : `TZS ${walletData?.balance.toLocaleString()}`}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Transaction Actions Card */}
-          <Card className="md:col-span-2">
-            <CardHeader>
-              <CardTitle>Manage Funds</CardTitle>
-              <CardDescription>Deposit or withdraw funds from your wallet</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Tabs defaultValue="deposit" className="w-full">
-                <TabsList className="grid w-full grid-cols-2 mb-4">
-                  <TabsTrigger value="deposit">Deposit</TabsTrigger>
-                  <TabsTrigger value="withdraw">Withdraw</TabsTrigger>
-                </TabsList>
-                <TabsContent value="deposit">
-                  <div className="flex flex-col md:flex-row gap-4">
-                    <Input
-                      type="number"
-                      placeholder="Amount in TZS"
-                      value={depositAmount}
-                      onChange={(e) => setDepositAmount(e.target.value)}
-                      className="md:flex-1"
-                    />
-                    <Button
-                      onClick={handleDeposit}
-                      disabled={depositMutation.isPending}
-                      className="w-full md:w-auto"
-                    >
-                      {depositMutation.isPending ? "Processing..." : "Deposit Funds"}
-                    </Button>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Wallet Balance Card */}
+              <Card className="md:col-span-1">
+                <CardHeader>
+                  <CardTitle>Balance</CardTitle>
+                  <CardDescription>Your current wallet balance</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-primary">
+                    {isLoadingWallet
+                      ? "Loading..."
+                      : `TZS ${walletData?.balance.toLocaleString()}`}
                   </div>
-                </TabsContent>
-                <TabsContent value="withdraw">
-                  <div className="flex flex-col md:flex-row gap-4">
-                    <Input
-                      type="number"
-                      placeholder="Amount in TZS"
-                      value={withdrawAmount}
-                      onChange={(e) => setWithdrawAmount(e.target.value)}
-                      className="md:flex-1"
-                    />
-                    <Button
-                      onClick={handleWithdraw}
-                      disabled={withdrawMutation.isPending}
-                      className="w-full md:w-auto"
-                    >
-                      {withdrawMutation.isPending ? "Processing..." : "Withdraw Funds"}
-                    </Button>
-                  </div>
-                </TabsContent>
-              </Tabs>
-            </CardContent>
-          </Card>
-        </div>
+                </CardContent>
+              </Card>
 
-        {/* Transactions List */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Transaction History</CardTitle>
-            <CardDescription>Recent activity in your wallet</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {isLoadingTransactions ? (
-              <div className="text-center py-4">Loading transactions...</div>
-            ) : transactions?.length > 0 ? (
-              <div className="space-y-4">
-                {transactions.map((transaction: WalletTransaction) => (
-                  <div key={transaction.id} className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      {getTransactionIcon(transaction.type)}
-                      <div>
-                        <p className="font-medium">{transaction.description}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {transaction.date
-                            ? formatDistanceToNow(new Date(transaction.date), { addSuffix: true })
-                            : "Unknown date"}
-                        </p>
+              {/* Transaction Actions Card */}
+              <Card className="md:col-span-2">
+                <CardHeader>
+                  <CardTitle>Manage Funds</CardTitle>
+                  <CardDescription>Deposit or withdraw funds from your wallet</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Tabs defaultValue="deposit" className="w-full">
+                    <TabsList className="grid w-full grid-cols-2 mb-4">
+                      <TabsTrigger value="deposit">Deposit</TabsTrigger>
+                      <TabsTrigger value="withdraw">Withdraw</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="deposit">
+                      <div className="flex flex-col md:flex-row gap-4">
+                        <Input
+                          type="number"
+                          placeholder="Amount in TZS"
+                          value={depositAmount}
+                          onChange={(e) => setDepositAmount(e.target.value)}
+                          className="md:flex-1"
+                        />
+                        <Button
+                          onClick={handleDeposit}
+                          disabled={depositMutation.isPending}
+                          className="w-full md:w-auto"
+                        >
+                          {depositMutation.isPending ? "Processing..." : "Deposit Funds"}
+                        </Button>
                       </div>
-                    </div>
-                    <div className={`font-medium ${transaction.amount > 0 ? "text-green-600" : "text-red-600"}`}>
-                      {transaction.amount > 0 ? "+" : ""}
-                      {transaction.amount.toLocaleString()} TZS
-                    </div>
+                    </TabsContent>
+                    <TabsContent value="withdraw">
+                      <div className="flex flex-col md:flex-row gap-4">
+                        <Input
+                          type="number"
+                          placeholder="Amount in TZS"
+                          value={withdrawAmount}
+                          onChange={(e) => setWithdrawAmount(e.target.value)}
+                          className="md:flex-1"
+                        />
+                        <Button
+                          onClick={handleWithdraw}
+                          disabled={withdrawMutation.isPending}
+                          className="w-full md:w-auto"
+                        >
+                          {withdrawMutation.isPending ? "Processing..." : "Withdraw Funds"}
+                        </Button>
+                      </div>
+                    </TabsContent>
+                  </Tabs>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Transactions List */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Transaction History</CardTitle>
+                <CardDescription>Recent activity in your wallet</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {isLoadingTransactions ? (
+                  <div className="text-center py-4">Loading transactions...</div>
+                ) : transactions?.length > 0 ? (
+                  <div className="space-y-4">
+                    {transactions.map((transaction: WalletTransaction) => (
+                      <div key={transaction.id} className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          {getTransactionIcon(transaction.type)}
+                          <div>
+                            <p className="font-medium">{transaction.description}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {transaction.date
+                                ? formatDistanceToNow(new Date(transaction.date), { addSuffix: true })
+                                : "Unknown date"}
+                            </p>
+                          </div>
+                        </div>
+                        <div className={`font-medium ${transaction.amount > 0 ? "text-green-600" : "text-red-600"}`}>
+                          {transaction.amount > 0 ? "+" : ""}
+                          {transaction.amount.toLocaleString()} TZS
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-4 text-muted-foreground">
-                No transactions yet. Deposit funds to get started.
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                ) : (
+                  <div className="text-center py-4 text-muted-foreground">
+                    No transactions yet. Deposit funds to get started.
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </main>
       </div>
     </div>
   );
