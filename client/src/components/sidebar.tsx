@@ -19,7 +19,7 @@ export function Sidebar({ isMobile, onClose }: SidebarProps) {
 
   // Base nav items for all users
   const baseNavItems = [
-    { href: "/", label: "Properties", icon: <Home className="h-5 w-5 mr-3" /> },
+    { href: "/dashboard", label: "Properties", icon: <Home className="h-5 w-5 mr-3" /> },
     { href: "/portfolio", label: "Portfolio", icon: <Briefcase className="h-5 w-5 mr-3" /> },
     { href: "/wallet", label: "Wallet", icon: <Wallet className="h-5 w-5 mr-3" /> },
     { href: "/profile", label: "Profile", icon: <User className="h-5 w-5 mr-3" /> },

@@ -10,6 +10,7 @@ import WalletPage from "@/pages/wallet-page";
 import PortfolioPage from "@/pages/portfolio-page";
 import ProfilePage from "@/pages/profile-page";
 import AdminPage from "@/pages/admin-page";
+import LandingPage from "@/pages/landing-page";
 import { ProtectedRoute } from "./lib/protected-route";
 import { AuthProvider } from "./hooks/use-auth";
 import { ThemeProvider } from "@/components/ui/theme-provider";
@@ -17,12 +18,13 @@ import { ThemeProvider } from "@/components/ui/theme-provider";
 function Router() {
   return (
     <Switch>
-      <ProtectedRoute path="/" component={HomePage} />
+      <Route path="/" component={LandingPage} />
+      <ProtectedRoute path="/dashboard" component={HomePage} />
       <ProtectedRoute path="/property/:id" component={PropertyDetails} />
       <ProtectedRoute path="/wallet" component={WalletPage} />
       <ProtectedRoute path="/portfolio" component={PortfolioPage} />
       <ProtectedRoute path="/profile" component={ProfilePage} />
-      <ProtectedRoute path="/admin" component={AdminPage} />
+      <ProtectedRoute path="/admin" component={AdminPage} requireAdmin={true} />
       <Route path="/auth" component={AuthPage} />
       <Route component={NotFound} />
     </Switch>

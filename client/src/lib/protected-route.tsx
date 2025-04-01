@@ -2,13 +2,17 @@ import { useAuth } from "@/hooks/use-auth";
 import { Loader2 } from "lucide-react";
 import { Redirect, Route } from "wouter";
 
+interface ProtectedRouteProps {
+  path: string;
+  component: () => React.ReactNode;
+  requireAdmin?: boolean;
+}
+
 export function ProtectedRoute({
   path,
   component: Component,
-}: {
-  path: string;
-  component: () => React.ReactNode;
-}) {
+  requireAdmin = false,
+}: ProtectedRouteProps) {
   const { user, isLoading } = useAuth();
 
   if (isLoading) {
@@ -25,6 +29,15 @@ export function ProtectedRoute({
     return (
       <Route path={path}>
         <Redirect to="/auth" />
+      </Route>
+    );
+  }
+
+  // Check if the route requires admin access and user is not an admin
+  if (requireAdmin && user.role !== "admin") {
+    return (
+      <Route path={path}>
+        <Redirect to="/" />
       </Route>
     );
   }
