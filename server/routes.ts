@@ -155,6 +155,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       let description = "Funds deposited to wallet";
+      let organization = "-";
+      let account = "-";
       
       // Different handling based on deposit method
       if (method === "card" && cardId) {
@@ -167,9 +169,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         
         description = `Deposit via card ending in ${selectedCard.lastFourDigits}`;
+        organization = selectedCard.cardType || "Card"; // Visa, Mastercard, etc.
+        account = `**** ${selectedCard.lastFourDigits}`;
       } 
       else if (method === "mobile-money" && provider && phoneNumber) {
         description = `Deposit via ${provider} (${phoneNumber})`;
+        organization = provider;
+        account = phoneNumber;
       }
       
       // Update wallet balance
@@ -180,6 +186,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId: req.user!.id,
         amount: numAmount,
         type: "deposit",
+        method,
+        organization,
+        account,
         description,
         relatedPropertyId: null
       });
@@ -222,11 +231,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       let description = "Funds withdrawn from wallet";
+      let organization = "-";
+      let account = "-";
       
       // Different handling based on withdrawal method
       if (method === "bank" && bankName && accountNumber) {
         const maskedAccount = accountNumber.slice(-4).padStart(accountNumber.length, '*');
         description = `Withdrawal to ${bankName} account ${maskedAccount} (${accountName})`;
+        organization = bankName;
+        account = maskedAccount;
       }
       
       // Update wallet balance (negative amount for withdrawal)
@@ -237,6 +250,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId: req.user!.id,
         amount: -numAmount,
         type: "withdrawal",
+        method: method || "bank",
+        organization,
+        account,
         description,
         relatedPropertyId: null
       });

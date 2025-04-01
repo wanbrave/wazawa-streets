@@ -57,6 +57,9 @@ export const walletTransactions = pgTable("wallet_transactions", {
   userId: integer("user_id").notNull(),
   amount: real("amount").notNull(),
   type: text("type").notNull(), // deposit, withdrawal, investment, return
+  method: text("method").default("standard"), // card, mobile-money, bank, standard
+  organization: text("organization").default("-"), // M-Pesa, Airtel-Money, CRDB, Visa, etc.
+  account: text("account").default("-"), // Masked account info - last 4 digits or phone
   description: text("description").notNull(),
   date: timestamp("date").defaultNow().notNull(),
   relatedPropertyId: integer("related_property_id"),

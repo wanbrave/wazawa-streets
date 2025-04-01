@@ -186,53 +186,15 @@ export default function WalletPage() {
                   ) : transactions?.length > 0 ? (
                     <div className="min-w-[800px]">
                       {transactions.map((transaction: WalletTransaction) => {
-                        // Extract method, organization and account from description
-                        let method = "Standard";
-                        let organization = "-";
-                        let account = "-";
-                        
-                        if (transaction.description.includes("via card")) {
-                          method = "Card";
-                          const match = transaction.description.match(/via card ending in (\d+)/);
-                          account = match ? `**** ${match[1]}` : "-";
-                        } 
-                        else if (transaction.description.includes("via")) {
-                          method = "Mobile Money";
-                          const matchProvider = transaction.description.match(/via ([^(]+)/);
-                          if (matchProvider) {
-                            organization = matchProvider[1].trim();
-                          }
-                          
-                          const matchPhone = transaction.description.match(/\(([^)]+)\)/);
-                          if (matchPhone) {
-                            account = matchPhone[1];
-                          }
-                        }
-                        else if (transaction.description.includes("Withdrawal to")) {
-                          method = "Bank";
-                          
-                          // Extract bank name and account details
-                          // Expected format: "Withdrawal to CRDB account *****5432 (John Doe)"
-                          const bankMatch = transaction.description.match(/Withdrawal to ([^ ]+)/);
-                          if (bankMatch) {
-                            organization = bankMatch[1].trim();
-                          }
-                          
-                          const accountMatch = transaction.description.match(/account ([^ ]+)/);
-                          if (accountMatch) {
-                            account = accountMatch[1].trim();
-                          }
-                        }
-                        
                         return (
                           <div key={transaction.id} className="grid grid-cols-7 gap-2 p-4 border-b text-sm">
                             <div className="flex items-center gap-2">
                               {getTransactionIcon(transaction.type)}
                               <span className="capitalize">{transaction.type}</span>
                             </div>
-                            <div>{method}</div>
-                            <div>{organization}</div>
-                            <div className="truncate">{account}</div>
+                            <div className="capitalize">{transaction.method || "Standard"}</div>
+                            <div>{transaction.organization || "-"}</div>
+                            <div className="truncate">{transaction.account || "-"}</div>
                             <div>Completed</div>
                             <div>
                               {transaction.date

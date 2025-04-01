@@ -310,6 +310,9 @@ export class MemStorage implements IStorage {
       ...transaction,
       id,
       date: now,
+      method: transaction.method || "standard",
+      organization: transaction.organization || "-",
+      account: transaction.account || "-",
       relatedPropertyId: transaction.relatedPropertyId === undefined ? null : transaction.relatedPropertyId
     };
     
