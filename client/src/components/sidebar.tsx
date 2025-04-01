@@ -26,7 +26,7 @@ export function Sidebar({ isMobile, onClose }: SidebarProps) {
 
   const mobileClasses = isMobile
     ? "fixed inset-0 z-50 flex flex-col w-full bg-white"
-    : "hidden md:flex md:flex-col w-64 bg-white shadow-sm min-h-screen";
+    : "hidden md:flex md:flex-col md:sticky md:top-0 w-64 bg-white shadow-sm min-h-screen";
 
   return (
     <div className={mobileClasses}>

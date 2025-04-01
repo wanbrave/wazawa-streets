@@ -1,3 +1,4 @@
+import * as React from "react";
 import { useParams, Link } from "wouter";
 import { Sidebar } from "@/components/sidebar";
 import { MobileHeader } from "@/components/mobile-header";
@@ -93,6 +94,19 @@ export default function PropertyDetails() {
   const monthlyRentalIncome = (priceNumeric * (property.yearlyReturn / 100)) / 12;
   const fiveYearReturn = priceNumeric * ((1 + property.totalReturn / 100) ** 5 - 1);
   const estimatedMonthlyEarnings = monthlyRentalIncome * (property.projectedYield / 100);
+  
+  // State for image slider
+  const [currentImage, setCurrentImage] = React.useState(0);
+  const images = [
+    property.imageUrl,
+    `https://source.unsplash.com/random/800x600?property,interior&sig=1`,
+    `https://source.unsplash.com/random/800x600?property,interior&sig=2`,
+    `https://source.unsplash.com/random/800x600?property,interior&sig=3`,
+    `https://source.unsplash.com/random/800x600?property,interior&sig=4`,
+  ];
+  
+  // State for financials tab
+  const [financialsTab, setFinancialsTab] = React.useState('cost');
 
   // Investment strategy descriptions
   const strategies = {
@@ -128,24 +142,48 @@ export default function PropertyDetails() {
                 
                 {/* Image gallery */}
                 <div className="relative mb-4">
-                  <div className="rounded-lg overflow-hidden mb-2">
+                  <div className="rounded-lg overflow-hidden mb-2 relative">
                     <img 
-                      src={property.imageUrl} 
+                      src={images[currentImage]} 
                       alt={property.title}
                       className="w-full h-[300px] md:h-[400px] object-cover"
                     />
+                    
+                    {/* Navigation arrows */}
+                    <button 
+                      className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 rounded-full p-2 shadow-md"
+                      onClick={() => setCurrentImage((prev) => (prev === 0 ? images.length - 1 : prev - 1))}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                      </svg>
+                    </button>
+                    
+                    <button 
+                      className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 rounded-full p-2 shadow-md"
+                      onClick={() => setCurrentImage((prev) => (prev === images.length - 1 ? 0 : prev + 1))}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                      </svg>
+                    </button>
+                    
+                    {/* Image counter */}
+                    <div className="absolute bottom-3 right-3 bg-black/70 text-white text-xs px-2 py-1 rounded-md">
+                      {currentImage + 1}/{images.length}
+                    </div>
                   </div>
                   
                   {/* Thumbnail gallery */}
                   <div className="grid grid-cols-5 gap-2">
-                    <div className="aspect-square rounded-md overflow-hidden">
-                      <img src={property.imageUrl} alt="" className="object-cover w-full h-full" />
-                    </div>
-                    {/* Placeholder thumbnails */}
-                    {[...Array(4)].map((_, i) => (
-                      <div key={i} className="aspect-square bg-gray-200 rounded-md overflow-hidden">
+                    {images.map((image, i) => (
+                      <div 
+                        key={i} 
+                        className={`aspect-square rounded-md overflow-hidden cursor-pointer ${currentImage === i ? 'ring-2 ring-primary' : ''}`}
+                        onClick={() => setCurrentImage(i)}
+                      >
                         <img 
-                          src={`https://source.unsplash.com/random/300x300?property,interior&sig=${i}`} 
+                          src={image} 
                           alt="" 
                           className="object-cover w-full h-full" 
                         />
@@ -375,6 +413,88 @@ export default function PropertyDetails() {
                   </div>
                 </div>
                 
+                {/* Financials Section */}
+                <div className="bg-white rounded-lg shadow-sm p-5 mb-6">
+                  <div className="flex items-center mb-4">
+                    <svg className="h-6 w-6 mr-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12C4 7.59 7.59 4 12 4C16.41 4 20 7.59 20 12C20 16.41 16.41 20 12 20ZM12.5 7H11V13L16.2 16.2L17 14.9L12.5 12.2V7Z" fill="currentColor"/>
+                    </svg>
+                    <h2 className="text-lg font-semibold">Financials</h2>
+                  </div>
+                  
+                  <div className="mb-6">
+                    <div className="flex bg-gray-100 rounded-full overflow-hidden mb-4">
+                      <button
+                        className={`flex-1 py-3 text-center font-medium text-sm rounded-full ${financialsTab === 'cost' ? 'bg-green-500 text-white' : 'text-gray-600 hover:bg-gray-200'}`}
+                        onClick={() => setFinancialsTab('cost')}
+                      >
+                        Property cost
+                      </button>
+                      <button
+                        className={`flex-1 py-3 text-center font-medium text-sm rounded-full ${financialsTab === 'income' ? 'bg-green-500 text-white' : 'text-gray-600 hover:bg-gray-200'}`}
+                        onClick={() => setFinancialsTab('income')}
+                      >
+                        Rental income (Year 1)
+                      </button>
+                    </div>
+                    
+                    {financialsTab === 'cost' && (
+                      <>
+                        <div className="space-y-4">
+                          <div className="flex justify-between items-center">
+                            <div className="text-gray-700">Property price</div>
+                            <div className="font-semibold">TZS {priceNumeric.toLocaleString()}</div>
+                          </div>
+                          
+                          <div className="flex justify-between items-center">
+                            <div className="text-gray-700">Transaction costs</div>
+                            <div className="font-semibold">+ TZS {Math.round(priceNumeric * 0.11).toLocaleString()}</div>
+                          </div>
+                          
+                          <div className="border-t pt-4 flex justify-between items-center">
+                            <div className="text-gray-700">Investment cost</div>
+                            <div className="font-semibold text-green-500">= TZS {Math.round(priceNumeric * 1.11).toLocaleString()}</div>
+                          </div>
+                        </div>
+                        
+                        <div className="mt-4 bg-gray-50 p-3 rounded-lg text-xs text-gray-500 text-center">
+                          Includes Wazawa St.'s 1.5% fee
+                        </div>
+                      </>
+                    )}
+                    
+                    {financialsTab === 'income' && (
+                      <>
+                        <div className="space-y-4">
+                          <div className="flex justify-between items-center">
+                            <div className="text-gray-700">Annual gross rent</div>
+                            <div className="font-semibold">TZS {Math.round(monthlyRentalIncome * 12).toLocaleString()}</div>
+                          </div>
+                          
+                          <div className="flex justify-between items-center">
+                            <div className="text-gray-700">Service charges</div>
+                            <div className="font-semibold">- TZS {Math.round(monthlyRentalIncome * 12 * 0.13).toLocaleString()}</div>
+                          </div>
+                          
+                          <div className="flex justify-between items-center">
+                            <div className="text-gray-700">Mgmt. and maintenance</div>
+                            <div className="font-semibold">- TZS {Math.round(monthlyRentalIncome * 12 * 0.12).toLocaleString()}</div>
+                          </div>
+                          
+                          <div className="border-t pt-4 flex justify-between items-center">
+                            <div className="text-gray-700">Annual net income</div>
+                            <div className="font-semibold text-green-500">= TZS {Math.round(monthlyRentalIncome * 12 * 0.75).toLocaleString()}</div>
+                          </div>
+                        </div>
+                        
+                        <div className="mt-4 bg-gray-50 p-3 rounded-lg text-xs text-gray-500 text-center">
+                          This is an estimate for the 1st year of ownership
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+                
                 {/* Leasing strategy */}
                 <div className="bg-white rounded-lg shadow-sm p-5 mb-6">
                   <h2 className="text-lg font-semibold mb-4">Leasing strategy</h2>
@@ -541,7 +661,7 @@ export default function PropertyDetails() {
               
               {/* Right column - Investment details and CTA */}
               <div className="md:w-1/3">
-                <div className="sticky top-6">
+                <div className="md:sticky md:top-6">
                   <div className="bg-white rounded-lg shadow-sm p-5 mb-6">
                     <div className="flex justify-between items-baseline mb-4">
                       <h2 className="text-2xl font-bold">TZS {property.price}</h2>
@@ -596,7 +716,7 @@ export default function PropertyDetails() {
                       </div>
                     </div>
                     
-                    <Button className="w-full py-6 text-base font-semibold">
+                    <Button className="w-full py-6 text-base font-semibold bg-primary hover:bg-primary/90">
                       Invest Now
                     </Button>
                     
