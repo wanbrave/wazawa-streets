@@ -4,16 +4,28 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
-import { BadgePlus, BadgeMinus, Clock, CreditCard, Building, Star } from "lucide-react";
+import { 
+  BadgePlus, 
+  BadgeMinus, 
+  Clock, 
+  CreditCard, 
+  Building, 
+  Star, 
+  Phone, 
+  ArrowRight, 
+  Wallet
+} from "lucide-react";
 import { Sidebar } from "@/components/sidebar";
 import { MobileHeader } from "@/components/mobile-header";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { AddCardForm } from "@/components/add-card-form";
 import { PaymentCardDisplay } from "@/components/payment-card-display";
+import { CardDeposit } from "@/components/card-deposit";
+import { MobileMoneyDeposit } from "@/components/mobile-money-deposit";
+import { BankWithdrawal } from "@/components/bank-withdrawal";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 // Type for wallet transaction
 type WalletTransaction = {
@@ -29,9 +41,14 @@ type WalletTransaction = {
 export default function WalletPage() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [depositAmount, setDepositAmount] = useState("");
-  const [withdrawAmount, setWithdrawAmount] = useState("");
+  
+  // Dialog states
   const [isAddCardDialogOpen, setIsAddCardDialogOpen] = useState(false);
+  const [isDepositDialogOpen, setIsDepositDialogOpen] = useState(false);
+  const [isWithdrawDialogOpen, setIsWithdrawDialogOpen] = useState(false);
+  
+  // Deposit method state
+  const [depositMethod, setDepositMethod] = useState<"card" | "mobile-money">("card");
 
   // Fetch wallet balance
   const { data: walletData, isLoading: isLoadingWallet } = useQuery({
@@ -52,76 +69,6 @@ export default function WalletPage() {
       return res.json();
     },
   });
-
-  // Deposit mutation
-  const depositMutation = useMutation({
-    mutationFn: async (amount: string) => {
-      return apiRequest("POST", "/api/wallet/deposit", { amount });
-    },
-    onSuccess: () => {
-      toast({
-        title: "Deposit Successful",
-        description: `${depositAmount} TZS has been added to your wallet`,
-      });
-      setDepositAmount("");
-      queryClient.invalidateQueries({ queryKey: ["/api/wallet"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/wallet/transactions"] });
-    },
-    onError: (error) => {
-      toast({
-        title: "Deposit Failed",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
-
-  // Withdraw mutation
-  const withdrawMutation = useMutation({
-    mutationFn: async (amount: string) => {
-      return apiRequest("POST", "/api/wallet/withdraw", { amount });
-    },
-    onSuccess: () => {
-      toast({
-        title: "Withdrawal Successful",
-        description: `${withdrawAmount} TZS has been withdrawn from your wallet`,
-      });
-      setWithdrawAmount("");
-      queryClient.invalidateQueries({ queryKey: ["/api/wallet"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/wallet/transactions"] });
-    },
-    onError: (error) => {
-      toast({
-        title: "Withdrawal Failed",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
-
-  const handleDeposit = () => {
-    if (!depositAmount || isNaN(parseFloat(depositAmount)) || parseFloat(depositAmount) <= 0) {
-      toast({
-        title: "Invalid Amount",
-        description: "Please enter a valid amount to deposit",
-        variant: "destructive",
-      });
-      return;
-    }
-    depositMutation.mutate(depositAmount);
-  };
-
-  const handleWithdraw = () => {
-    if (!withdrawAmount || isNaN(parseFloat(withdrawAmount)) || parseFloat(withdrawAmount) <= 0) {
-      toast({
-        title: "Invalid Amount",
-        description: "Please enter a valid amount to withdraw",
-        variant: "destructive",
-      });
-      return;
-    }
-    withdrawMutation.mutate(withdrawAmount);
-  };
 
   const getTransactionIcon = (type: string) => {
     switch (type) {
@@ -174,50 +121,30 @@ export default function WalletPage() {
                   <CardDescription>Deposit or withdraw funds from your wallet</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Tabs defaultValue="deposit" className="w-full">
-                    <TabsList className="grid w-full grid-cols-2 mb-4">
-                      <TabsTrigger value="deposit">Deposit</TabsTrigger>
-                      <TabsTrigger value="withdraw">Withdraw</TabsTrigger>
-                    </TabsList>
-                    <TabsContent value="deposit">
-                      <div className="flex flex-col md:flex-row gap-4">
-                        <Input
-                          id="depositInput"
-                          type="number"
-                          placeholder="Amount in TZS"
-                          value={depositAmount}
-                          onChange={(e) => setDepositAmount(e.target.value)}
-                          className="md:flex-1"
-                        />
-                        <Button
-                          onClick={handleDeposit}
-                          disabled={depositMutation.isPending}
-                          className="w-full md:w-auto"
-                        >
-                          {depositMutation.isPending ? "Processing..." : "Deposit Funds"}
-                        </Button>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <Button 
+                      onClick={() => setIsDepositDialogOpen(true)}
+                      className="flex justify-between items-center bg-green-600 hover:bg-green-700 text-white p-6 h-auto"
+                    >
+                      <div className="flex items-center">
+                        <BadgePlus className="h-6 w-6 mr-3" />
+                        <span className="text-lg font-medium">Deposit Funds</span>
                       </div>
-                    </TabsContent>
-                    <TabsContent value="withdraw">
-                      <div className="flex flex-col md:flex-row gap-4">
-                        <Input
-                          id="withdrawInput"
-                          type="number"
-                          placeholder="Amount in TZS"
-                          value={withdrawAmount}
-                          onChange={(e) => setWithdrawAmount(e.target.value)}
-                          className="md:flex-1"
-                        />
-                        <Button
-                          onClick={handleWithdraw}
-                          disabled={withdrawMutation.isPending}
-                          className="w-full md:w-auto"
-                        >
-                          {withdrawMutation.isPending ? "Processing..." : "Withdraw Funds"}
-                        </Button>
+                      <ArrowRight className="h-5 w-5" />
+                    </Button>
+                    
+                    <Button 
+                      onClick={() => setIsWithdrawDialogOpen(true)}
+                      variant="outline"
+                      className="flex justify-between items-center border-red-200 hover:bg-red-50 text-red-600 hover:text-red-700 p-6 h-auto"
+                    >
+                      <div className="flex items-center">
+                        <BadgeMinus className="h-6 w-6 mr-3" />
+                        <span className="text-lg font-medium">Withdraw Funds</span>
                       </div>
-                    </TabsContent>
-                  </Tabs>
+                      <ArrowRight className="h-5 w-5" />
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             </div>
@@ -312,12 +239,16 @@ export default function WalletPage() {
                   <div className="flex items-center gap-3 mb-4">
                     <Building className="h-5 w-5 text-muted-foreground" />
                     <p className="text-sm text-muted-foreground">
-                      Add a bank account to deposit from anywhere in the world
+                      Add a bank account for withdrawals
                     </p>
                   </div>
-                  <Button variant="outline" className="w-full flex items-center justify-center gap-2">
-                    <span>Add new bank</span>
-                    <BadgePlus className="h-4 w-4" />
+                  <Button 
+                    variant="outline" 
+                    className="w-full flex items-center justify-center gap-2"
+                    onClick={() => setIsWithdrawDialogOpen(true)}
+                  >
+                    <span>Withdraw to Bank</span>
+                    <BadgeMinus className="h-4 w-4" />
                   </Button>
                 </CardContent>
               </Card>
@@ -336,6 +267,62 @@ export default function WalletPage() {
             </DialogDescription>
           </DialogHeader>
           <AddCardForm onClose={() => setIsAddCardDialogOpen(false)} />
+        </DialogContent>
+      </Dialog>
+
+      {/* Deposit Dialog */}
+      <Dialog open={isDepositDialogOpen} onOpenChange={setIsDepositDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Deposit Funds</DialogTitle>
+            <DialogDescription>
+              Choose your preferred deposit method
+            </DialogDescription>
+          </DialogHeader>
+          
+          <Tabs defaultValue="card" onValueChange={(value) => setDepositMethod(value as "card" | "mobile-money")}>
+            <TabsList className="grid w-full grid-cols-2 mb-4">
+              <TabsTrigger value="card" className="flex items-center gap-2">
+                <CreditCard className="h-4 w-4" />
+                <span>Card</span>
+              </TabsTrigger>
+              <TabsTrigger value="mobile-money" className="flex items-center gap-2">
+                <Phone className="h-4 w-4" />
+                <span>Mobile Money</span>
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="card">
+              <CardDeposit 
+                onClose={() => setIsDepositDialogOpen(false)}
+                onAddCard={() => {
+                  setIsDepositDialogOpen(false);
+                  setIsAddCardDialogOpen(true);
+                }} 
+              />
+            </TabsContent>
+            
+            <TabsContent value="mobile-money">
+              <MobileMoneyDeposit onClose={() => setIsDepositDialogOpen(false)} />
+            </TabsContent>
+          </Tabs>
+        </DialogContent>
+      </Dialog>
+
+      {/* Withdraw Dialog */}
+      <Dialog open={isWithdrawDialogOpen} onOpenChange={setIsWithdrawDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Withdraw Funds</DialogTitle>
+            <DialogDescription>
+              Transfer funds to your bank account
+            </DialogDescription>
+          </DialogHeader>
+          
+          <BankWithdrawal 
+            onClose={() => setIsWithdrawDialogOpen(false)} 
+            walletBalance={walletData?.balance || 0}
+          />
         </DialogContent>
       </Dialog>
     </div>

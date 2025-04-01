@@ -147,11 +147,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
     
     try {
-      const { amount } = req.body;
+      const { amount, method, provider, phoneNumber, cardId, cvv } = req.body;
       const numAmount = parseFloat(amount);
       
       if (isNaN(numAmount) || numAmount <= 0) {
         return res.status(400).json({ message: "Invalid amount" });
+      }
+      
+      let description = "Funds deposited to wallet";
+      
+      // Different handling based on deposit method
+      if (method === "card" && cardId) {
+        // Get the user's cards to verify ownership
+        const cards = await storage.getUserPaymentCards(req.user!.id);
+        const selectedCard = cards.find(card => card.id === parseInt(cardId));
+        
+        if (!selectedCard) {
+          return res.status(404).json({ message: "Card not found or does not belong to user" });
+        }
+        
+        description = `Deposit via card ending in ${selectedCard.lastFourDigits}`;
+      } 
+      else if (method === "mobile-money" && provider && phoneNumber) {
+        description = `Deposit via ${provider} (${phoneNumber})`;
       }
       
       // Update wallet balance
@@ -162,7 +180,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId: req.user!.id,
         amount: numAmount,
         type: "deposit",
-        description: "Funds deposited to wallet",
+        description,
         relatedPropertyId: null
       });
       
@@ -182,7 +200,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
     
     try {
-      const { amount } = req.body;
+      const { 
+        amount, 
+        method, 
+        bankName,
+        accountNumber,
+        accountName,
+        branchName,
+        swiftCode
+      } = req.body;
+      
       const numAmount = parseFloat(amount);
       
       if (isNaN(numAmount) || numAmount <= 0) {
@@ -194,6 +221,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Insufficient funds" });
       }
       
+      let description = "Funds withdrawn from wallet";
+      
+      // Different handling based on withdrawal method
+      if (method === "bank" && bankName && accountNumber) {
+        description = `Withdrawal to ${bankName} account ${accountNumber.slice(-4).padStart(accountNumber.length, '*')} (${accountName})`;
+      }
+      
       // Update wallet balance (negative amount for withdrawal)
       await storage.updateWalletBalance(req.user!.id, -numAmount);
       
@@ -202,13 +236,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId: req.user!.id,
         amount: -numAmount,
         type: "withdrawal",
-        description: "Funds withdrawn from wallet",
+        description,
         relatedPropertyId: null
       });
       
       const walletBalance = await storage.getUserWalletBalance(req.user!.id);
       res.json({ 
-        message: "Withdrawal successful", 
+        message: "Withdrawal request received", 
         balance: walletBalance 
       });
     } catch (error) {
