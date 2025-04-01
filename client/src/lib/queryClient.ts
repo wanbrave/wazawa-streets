@@ -12,8 +12,8 @@ export async function apiRequest(
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
-  // Make sure we use the correct port for API requests
-  const apiUrl = url.startsWith('http') ? url : `http://localhost:5000${url}`;
+  // Use relative URLs to avoid CORS issues
+  const apiUrl = url.startsWith('http') ? url : url;
   
   const res = await fetch(apiUrl, {
     method,
@@ -32,11 +32,10 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    // Make sure we use the correct port for API requests
+    // Use relative URLs to avoid CORS issues
     const url = queryKey[0] as string;
-    const apiUrl = url.startsWith('http') ? url : `http://localhost:5000${url}`;
     
-    const res = await fetch(apiUrl, {
+    const res = await fetch(url, {
       credentials: "include",
     });
 
