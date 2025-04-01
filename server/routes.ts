@@ -6,7 +6,12 @@ import {
   insertPropertySchema, 
   updateUserProfileSchema,
   insertWalletTransactionSchema,
-  insertPaymentCardSchema
+  insertPaymentCardSchema,
+  insertPropertyImageSchema,
+  insertPropertyDocumentSchema,
+  insertAdminAuditLogSchema,
+  adminUpdateUserSchema,
+  adminUpdatePropertySchema
 } from "@shared/schema";
 import { z } from "zod";
 
@@ -420,6 +425,263 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Property images routes
+  app.get("/api/properties/:id/images", async (req, res) => {
+    const propertyId = parseInt(req.params.id);
+    if (isNaN(propertyId)) {
+      return res.status(400).json({ message: "Invalid property ID" });
+    }
+    
+    try {
+      const images = await storage.getPropertyImages(propertyId);
+      res.json(images);
+    } catch (error) {
+      res.status(500).json({ message: "Could not fetch property images" });
+    }
+  });
+  
+  // Property documents routes
+  app.get("/api/properties/:id/documents", async (req, res) => {
+    const propertyId = parseInt(req.params.id);
+    if (isNaN(propertyId)) {
+      return res.status(400).json({ message: "Invalid property ID" });
+    }
+    
+    try {
+      const documents = await storage.getPropertyDocuments(propertyId);
+      res.json(documents);
+    } catch (error) {
+      res.status(500).json({ message: "Could not fetch property documents" });
+    }
+  });
+  
+  // Admin middleware to check admin role
+  const isAdmin = (req: any, res: any, next: any) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ message: "Forbidden - Admin access required" });
+    }
+    
+    next();
+  };
+  
+  // Admin routes
+  app.get("/api/admin/users", isAdmin, async (req, res) => {
+    try {
+      const users = await storage.getAllUsers();
+      res.json(users);
+    } catch (error) {
+      res.status(500).json({ message: "Could not fetch users" });
+    }
+  });
+  
+  app.get("/api/admin/properties", isAdmin, async (req, res) => {
+    try {
+      const properties = await storage.getAllProperties();
+      res.json(properties);
+    } catch (error) {
+      res.status(500).json({ message: "Could not fetch properties" });
+    }
+  });
+  
+  app.get("/api/admin/transactions", isAdmin, async (req, res) => {
+    try {
+      const transactions = await storage.getAllTransactions();
+      res.json(transactions);
+    } catch (error) {
+      res.status(500).json({ message: "Could not fetch transactions" });
+    }
+  });
+  
+  app.patch("/api/admin/users/:id", isAdmin, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.id);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+      
+      const userData = adminUpdateUserSchema.parse(req.body);
+      const updatedUser = await storage.updateUserByAdmin(userId, userData);
+      
+      // Log admin action
+      await storage.addAdminAuditLog({
+        adminId: req.user!.id,
+        action: "Updated user",
+        entityType: "User",
+        entityId: userId,
+        details: JSON.stringify(userData),
+        ipAddress: req.ip || null
+      });
+      
+      res.json(updatedUser);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors });
+      }
+      res.status(500).json({ message: "Could not update user" });
+    }
+  });
+  
+  app.patch("/api/admin/properties/:id", isAdmin, async (req, res) => {
+    try {
+      const propertyId = parseInt(req.params.id);
+      if (isNaN(propertyId)) {
+        return res.status(400).json({ message: "Invalid property ID" });
+      }
+      
+      const propertyData = adminUpdatePropertySchema.parse(req.body);
+      const updatedProperty = await storage.updatePropertyByAdmin(propertyId, propertyData);
+      
+      // Log admin action
+      await storage.addAdminAuditLog({
+        adminId: req.user!.id,
+        action: "Updated property",
+        entityType: "Property",
+        entityId: propertyId,
+        details: JSON.stringify(propertyData),
+        ipAddress: req.ip || null
+      });
+      
+      res.json(updatedProperty);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors });
+      }
+      res.status(500).json({ message: "Could not update property" });
+    }
+  });
+  
+  app.post("/api/admin/properties/:id/images", isAdmin, async (req, res) => {
+    try {
+      const propertyId = parseInt(req.params.id);
+      if (isNaN(propertyId)) {
+        return res.status(400).json({ message: "Invalid property ID" });
+      }
+      
+      const imageData = {
+        ...req.body,
+        propertyId
+      };
+      
+      const validatedImageData = insertPropertyImageSchema.parse(imageData);
+      const image = await storage.addPropertyImage(validatedImageData);
+      
+      // Log admin action
+      await storage.addAdminAuditLog({
+        adminId: req.user!.id,
+        action: "Added property image",
+        entityType: "PropertyImage",
+        entityId: image.id,
+        details: `Added image to property ID ${propertyId}`,
+        ipAddress: req.ip || null
+      });
+      
+      res.status(201).json(image);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors });
+      }
+      res.status(500).json({ message: "Could not add property image" });
+    }
+  });
+  
+  app.delete("/api/admin/properties/images/:id", isAdmin, async (req, res) => {
+    try {
+      const imageId = parseInt(req.params.id);
+      if (isNaN(imageId)) {
+        return res.status(400).json({ message: "Invalid image ID" });
+      }
+      
+      await storage.deletePropertyImage(imageId);
+      
+      // Log admin action
+      await storage.addAdminAuditLog({
+        adminId: req.user!.id,
+        action: "Deleted property image",
+        entityType: "PropertyImage",
+        entityId: imageId,
+        details: null,
+        ipAddress: req.ip || null
+      });
+      
+      res.json({ message: "Image deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Could not delete property image" });
+    }
+  });
+  
+  app.post("/api/admin/properties/:id/documents", isAdmin, async (req, res) => {
+    try {
+      const propertyId = parseInt(req.params.id);
+      if (isNaN(propertyId)) {
+        return res.status(400).json({ message: "Invalid property ID" });
+      }
+      
+      const docData = {
+        ...req.body,
+        propertyId,
+        uploadedBy: req.user!.id
+      };
+      
+      const validatedDocData = insertPropertyDocumentSchema.parse(docData);
+      const document = await storage.addPropertyDocument(validatedDocData);
+      
+      // Log admin action
+      await storage.addAdminAuditLog({
+        adminId: req.user!.id,
+        action: "Added property document",
+        entityType: "PropertyDocument",
+        entityId: document.id,
+        details: `Added document "${document.title}" to property ID ${propertyId}`,
+        ipAddress: req.ip || null
+      });
+      
+      res.status(201).json(document);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors });
+      }
+      res.status(500).json({ message: "Could not add property document" });
+    }
+  });
+  
+  app.delete("/api/admin/properties/documents/:id", isAdmin, async (req, res) => {
+    try {
+      const documentId = parseInt(req.params.id);
+      if (isNaN(documentId)) {
+        return res.status(400).json({ message: "Invalid document ID" });
+      }
+      
+      await storage.deletePropertyDocument(documentId);
+      
+      // Log admin action
+      await storage.addAdminAuditLog({
+        adminId: req.user!.id,
+        action: "Deleted property document",
+        entityType: "PropertyDocument",
+        entityId: documentId,
+        details: null,
+        ipAddress: req.ip || null
+      });
+      
+      res.json({ message: "Document deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Could not delete property document" });
+    }
+  });
+  
+  app.get("/api/admin/audit-logs", isAdmin, async (req, res) => {
+    try {
+      const auditLogs = await storage.getAdminAuditLogs();
+      res.json(auditLogs);
+    } catch (error) {
+      res.status(500).json({ message: "Could not fetch audit logs" });
+    }
+  });
+  
   // Initialize properties if none exist
   await storage.initializeProperties();
 

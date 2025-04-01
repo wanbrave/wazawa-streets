@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Home, Briefcase, Award, Wallet, User, Building2 } from "lucide-react";
+import { Home, Briefcase, Award, Wallet, User, Building2, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/use-auth";
@@ -17,12 +17,18 @@ export function Sidebar({ isMobile, onClose }: SidebarProps) {
     logoutMutation.mutate();
   };
 
-  const navItems = [
+  // Base nav items for all users
+  const baseNavItems = [
     { href: "/", label: "Properties", icon: <Home className="h-5 w-5 mr-3" /> },
     { href: "/portfolio", label: "Portfolio", icon: <Briefcase className="h-5 w-5 mr-3" /> },
     { href: "/wallet", label: "Wallet", icon: <Wallet className="h-5 w-5 mr-3" /> },
     { href: "/profile", label: "Profile", icon: <User className="h-5 w-5 mr-3" /> },
   ];
+  
+  // Add admin item if user has admin role
+  const navItems = user?.role === 'admin' 
+    ? [...baseNavItems, { href: "/admin", label: "Admin", icon: <Settings className="h-5 w-5 mr-3" /> }]
+    : baseNavItems;
 
   const mobileClasses = isMobile
     ? "fixed inset-0 z-50 flex flex-col w-full bg-white"
@@ -85,7 +91,7 @@ export function Sidebar({ isMobile, onClose }: SidebarProps) {
             </Avatar>
             <div>
               <p className="text-sm font-medium text-gray-800">{user?.username || 'User'}</p>
-              <p className="text-xs text-gray-500">Investor</p>
+              <p className="text-xs text-gray-500">{user?.role === 'admin' ? 'Administrator' : 'Investor'}</p>
             </div>
           </div>
           <Button variant="ghost" size="sm" onClick={handleLogout}>
