@@ -11,7 +11,7 @@ import { formatDistanceToNow } from "date-fns";
 import { BadgePlus, BadgeMinus, Clock, CreditCard, Building, Star } from "lucide-react";
 import { Sidebar } from "@/components/sidebar";
 import { MobileHeader } from "@/components/mobile-header";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { AddCardForm } from "@/components/add-card-form";
 import { PaymentCardDisplay } from "@/components/payment-card-display";
 
@@ -329,6 +329,12 @@ export default function WalletPage() {
       {/* Add Card Dialog */}
       <Dialog open={isAddCardDialogOpen} onOpenChange={setIsAddCardDialogOpen}>
         <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add Payment Card</DialogTitle>
+            <DialogDescription>
+              Add a new payment card to your account for easier deposits
+            </DialogDescription>
+          </DialogHeader>
           <AddCardForm onClose={() => setIsAddCardDialogOpen(false)} />
         </DialogContent>
       </Dialog>
