@@ -23,6 +23,10 @@ import {
 
 export default function PropertyDetails() {
   const { id } = useParams();
+  // Initialize all state hooks at the top level (React rules of hooks)
+  const [currentImage, setCurrentImage] = React.useState(0);
+  const [financialsTab, setFinancialsTab] = React.useState('cost');
+  
   const { data: property, isLoading } = useQuery<Property>({
     queryKey: [`/api/properties/${id}`],
   });
@@ -73,7 +77,7 @@ export default function PropertyDetails() {
             <div className="max-w-5xl mx-auto text-center py-12">
               <h2 className="text-2xl font-bold text-gray-800 mb-2">Property Not Found</h2>
               <p className="text-gray-600 mb-6">The property you're looking for doesn't exist or has been removed.</p>
-              <Link href="/" asChild>
+              <Link href="/dashboard" asChild>
                 <Button>
                   <ArrowLeft className="mr-2 h-4 w-4" />
                   Back to Properties
@@ -95,8 +99,7 @@ export default function PropertyDetails() {
   const fiveYearReturn = priceNumeric * ((1 + property.totalReturn / 100) ** 5 - 1);
   const estimatedMonthlyEarnings = monthlyRentalIncome * (property.projectedYield / 100);
   
-  // State for image slider
-  const [currentImage, setCurrentImage] = React.useState(0);
+  // Set up images array
   const images = [
     property.imageUrl,
     `https://source.unsplash.com/random/800x600?property,interior&sig=1`,
@@ -104,9 +107,6 @@ export default function PropertyDetails() {
     `https://source.unsplash.com/random/800x600?property,interior&sig=3`,
     `https://source.unsplash.com/random/800x600?property,interior&sig=4`,
   ];
-  
-  // State for financials tab
-  const [financialsTab, setFinancialsTab] = React.useState('cost');
 
   // Investment strategy descriptions
   const strategies = {
