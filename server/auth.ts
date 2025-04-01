@@ -30,7 +30,7 @@ async function comparePasswords(supplied: string, stored: string) {
 
 export function setupAuth(app: Express) {
   const sessionSettings: session.SessionOptions = {
-    secret: process.env.SESSION_SECRET || "stake-secret-key-should-be-in-env",
+    secret: process.env.SESSION_SECRET || "wazawa-st-secret-key-should-be-in-env",
     resave: false,
     saveUninitialized: false,
     store: storage.sessionStore,

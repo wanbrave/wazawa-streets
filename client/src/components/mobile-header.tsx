@@ -11,7 +11,7 @@ export function MobileHeader() {
       <div className="md:hidden bg-white w-full fixed top-0 left-0 z-10 border-b border-gray-200">
         <div className="flex items-center justify-between p-4">
           <div className="flex items-center">
-            <h1 className="text-xl font-bold text-gray-800">stake</h1>
+            <h1 className="text-xl font-bold text-gray-800">Wazawa St.</h1>
             <div className="ml-4 flex items-center text-sm">
               <Globe className="h-4 w-4 mr-1" />
               <span>EN</span>

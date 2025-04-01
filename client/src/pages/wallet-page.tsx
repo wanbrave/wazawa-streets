@@ -33,6 +33,9 @@ type WalletTransaction = {
   userId: number;
   amount: number;
   type: string;
+  method: string;
+  organization: string;
+  account: string;
   description: string;
   date: string;
   relatedPropertyId: number | null;
