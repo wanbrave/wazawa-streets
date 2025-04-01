@@ -74,8 +74,8 @@ export default function PortfolioPage() {
     
     // Filter investments made in the current year
     const investedThisYear = portfolioItems
-      .filter(item => new Date(item.dateInvested).getFullYear() === currentYear)
-      .reduce((sum, item) => sum + item.investmentAmount, 0);
+      .filter((item: PortfolioItem) => new Date(item.dateInvested).getFullYear() === currentYear)
+      .reduce((sum: number, item: PortfolioItem) => sum + item.investmentAmount, 0);
     
     const annualLimit = 367000; // Example annual limit in TZS
     const availableToInvest = Math.max(0, annualLimit - investedThisYear);

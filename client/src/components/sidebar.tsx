@@ -59,18 +59,18 @@ export function Sidebar({ isMobile, onClose }: SidebarProps) {
         {navItems.map((item) => {
           const isActive = location === item.href;
           return (
-            <Link key={item.href} href={item.href}>
-              <a
-                className={`flex items-center px-4 py-3 rounded-md ${
-                  isActive
-                    ? "text-gray-800 bg-gray-200"
-                    : "text-gray-600 hover:bg-gray-200"
-                }`}
-                onClick={isMobile ? onClose : undefined}
-              >
-                {item.icon}
-                {item.label}
-              </a>
+            <Link 
+              key={item.href} 
+              href={item.href} 
+              onClick={isMobile ? onClose : undefined}
+              className={`flex items-center px-4 py-3 rounded-md ${
+                isActive
+                  ? "text-gray-800 bg-gray-200"
+                  : "text-gray-600 hover:bg-gray-200"
+              }`}
+            >
+              {item.icon}
+              {item.label}
             </Link>
           );
         })}
