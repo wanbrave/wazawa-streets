@@ -31,8 +31,8 @@ export function Sidebar({ isMobile, onClose }: SidebarProps) {
     : baseNavItems;
 
   const mobileClasses = isMobile
-    ? "fixed inset-0 z-50 flex flex-col w-full bg-white"
-    : "hidden md:flex md:flex-col md:sticky md:top-0 w-64 bg-white shadow-sm min-h-screen";
+    ? "fixed inset-0 z-50 flex flex-col w-full bg-white overflow-y-auto"
+    : "hidden md:flex md:flex-col md:sticky md:top-0 md:left-0 md:h-screen w-64 bg-white shadow-sm";
 
   return (
     <div className={mobileClasses}>
