@@ -106,8 +106,12 @@ export default function PortfolioPage() {
       <MobileHeader />
       
       <div className="flex-1 flex flex-col md:ml-0 pt-16 md:pt-0">
-        <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-gray-50">
+        <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-neutral-100">
           <div className="flex flex-col gap-6">
+            <div>
+              <h1 className="text-2xl font-bold mb-2">My Portfolio</h1>
+              <p className="text-gray-600">Track and manage your real estate investments across Tanzania.</p>
+            </div>
             {/* Portfolio Value */}
             <Card className="border-0 shadow-sm">
               <CardContent className="p-6">

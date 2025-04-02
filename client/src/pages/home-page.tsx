@@ -13,10 +13,14 @@ export default function HomePage() {
     <div className="min-h-screen flex">
       <Sidebar />
       <MobileHeader />
-      
+
       <div className="flex-1 flex flex-col md:ml-0 pt-16 md:pt-0">
         <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-neutral-100">
-          <div className="mb-8">
+          <div className="flex flex-col gap-6">
+            <div>
+              <h1 className="text-2xl font-bold mb-2">Available Properties</h1>
+              <p className="text-gray-600">Explore vetted real estate investment opportunities across Tanzania.</p>
+            </div>
             <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
               <h2 className="text-2xl font-bold text-gray-800">Properties</h2>
               <div className="mt-3 md:mt-0">
@@ -26,7 +30,7 @@ export default function HomePage() {
                 />
               </div>
             </div>
-            
+
             <PropertyGrid filter={activeFilter} />
           </div>
         </main>

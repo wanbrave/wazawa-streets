@@ -121,8 +121,8 @@ export default function PropertyDetails() {
       <MobileHeader />
       
       <div className="flex-1 flex flex-col md:ml-0 pt-16 md:pt-0">
-        <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-gray-50">
-          <div className="max-w-5xl mx-auto">
+        <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-neutral-100">
+          <div className="flex flex-col gap-6">
             <div className="flex flex-col md:flex-row mb-6 gap-6">
               {/* Left column - Property main info and image */}
               <div className="md:w-2/3">
