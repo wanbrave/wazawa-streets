@@ -9,7 +9,8 @@ app.use(express.urlencoded({ extended: false }));
 // Add CORS headers
 app.use((req, res, next) => {
   // Allow requests from frontend in development
-  res.header('Access-Control-Allow-Origin', 'http://0.0.0.0:5001');
+  const origin = req.headers.origin || 'http://0.0.0.0:5001';
+  res.header('Access-Control-Allow-Origin', origin);
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
   res.header('Access-Control-Allow-Credentials', 'true');

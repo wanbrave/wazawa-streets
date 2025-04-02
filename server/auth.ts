@@ -44,9 +44,11 @@ export function setupAuth(app: Express) {
     saveUninitialized: false,
     store: storage.sessionStore,
     cookie: {
-      secure: false, // Set to false in development to work without HTTPS
+      secure: process.env.NODE_ENV === 'production',
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
-      sameSite: 'lax' // Allow cookies to be sent with cross-site requests
+      sameSite: 'lax',
+      path: '/',
+      httpOnly: true
     }
   };
 
