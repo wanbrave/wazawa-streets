@@ -34,13 +34,17 @@ export const getQueryFn: <T>(options: {
   async ({ queryKey }) => {
     // Use relative URLs to avoid CORS issues
     const url = queryKey[0] as string;
+    const apiUrl = url.startsWith('http') ? url : `http://localhost:5001${url}`;
     
-    const res = await fetch(url, {
+    const res = await fetch(apiUrl, {
       credentials: "include",
     });
 
-    if (unauthorizedBehavior === "returnNull" && res.status === 401) {
-      return null;
+    if (res.status === 401) {
+      if (unauthorizedBehavior === "returnNull") {
+        return null;
+      }
+      throw new Error("Unauthorized");
     }
 
     await throwIfResNotOk(res);
