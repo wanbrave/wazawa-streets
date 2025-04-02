@@ -14,7 +14,8 @@ import createMemoryStore from "memorystore";
 import { db } from "./db";
 import { eq, desc } from "drizzle-orm";
 import connectPg from "connect-pg-simple";
-import { Pool } from "@neondatabase/serverless";
+import pkg from 'pg';
+const { Pool } = pkg;
 
 const MemoryStore = createMemoryStore(session);
 const PostgresSessionStore = connectPg(session);
