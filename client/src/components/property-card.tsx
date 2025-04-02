@@ -89,10 +89,8 @@ export function PropertyCard({ property }: PropertyCardProps) {
         />
         
         <div className="mt-4">
-          <Link href={`/property/${id}`}>
-            <a className="w-full inline-flex justify-center bg-primary hover:bg-primary/90 text-white py-2 px-4 rounded-md transition">
-              View Details
-            </a>
+          <Link href={`/property/${id}`} className="w-full inline-flex justify-center bg-primary hover:bg-primary/90 text-white py-2 px-4 rounded-md transition">
+            View Details
           </Link>
         </div>
       </CardContent>
